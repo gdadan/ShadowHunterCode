@@ -2,19 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SandStormSkill : TargetingSkill
+public class SandStormSkill : ActiveSkill, ITargetingSkill
 {
     [SerializeField] Collider areaCol;
+
+    public List<Transform> targetList { get; set ; }
 
     private void Start()
     {
         Utils.SetSkillRange(areaCol.gameObject, skillData.atkRange);
     }
 
-    public override void UseSkill()
-    {
-        base.UseSkill();
-
+    public override void UseActiveSkill()
+    {      
         StartAoESkill();
     }
 
@@ -29,8 +29,7 @@ public class SandStormSkill : TargetingSkill
 
     public override void AddFirstUpgrade()
     {
-        base.AddFirstUpgrade();
-
+       
         //범위 증가
         skillData.atkRange *= 1 + skillData.firstUpgradeValue[0];
         Utils.SetSkillRange(areaCol.gameObject, skillData.atkRange);
@@ -38,16 +37,14 @@ public class SandStormSkill : TargetingSkill
 
     public override void AddSecondUpgrade()
     {
-        base.AddSecondUpgrade();
-
+       
         //피해 주기 감소
         skillData.intervalTime *= 1 - skillData.secondUpgradeValue[0];
     }
 
     public override void AddThirdUpgrade()
     {
-        base.AddThirdUpgrade();
-
+       
         //지속 시간 증가
         skillData.duration *= 1 + skillData.thirdUpgradeValue[0];
     }

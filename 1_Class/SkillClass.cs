@@ -78,25 +78,20 @@ public interface IDamageable
 /// </summary>
 
 [Serializable]
-public class Skill : MonoBehaviour
+public abstract class Skill : MonoBehaviour
 {
     public int level; // 스킬 레벨
 
     public SkillHandler skillUser; // 스킬 사용자
 
-  
+    public abstract void UseSkill(); // 스킬 사용 효과                                  
+    public abstract void CheckSkillUpgrade();  // 스킬 레벨업 시 업그레이드 체크
+
     public virtual void InitSkill(SkillHandler _skillUser, int skilLevel)
     {
         skillUser = _skillUser;
-
         level = skilLevel;
-
-        if (level >= CONSTANTS.SkillUpgradeLevel[0]) AddFirstUpgrade();
-        if (level >= CONSTANTS.SkillUpgradeLevel[1]) AddSecondUpgrade();
-        if (level >= CONSTANTS.SkillUpgradeLevel[2]) AddThirdUpgrade();
     }
-
-    public virtual void UseSkill() { } // 스킬 사용 효과
 
     // 레벨 업 시
     public virtual void LevelUp()
@@ -108,42 +103,57 @@ public class Skill : MonoBehaviour
 
     public virtual void StopSkill()  // 스킬 종료시
     {
-        // isActive = false;
         gameObject.SetActive(false);
     }
 
-    // 스킬 레벨업 시 업그레이드 체크
-    public virtual void CheckSkillUpgrade()
-    {
-        if (level == CONSTANTS.SkillUpgradeLevel[0]) AddFirstUpgrade();
-        if (level == CONSTANTS.SkillUpgradeLevel[1]) AddSecondUpgrade();
-        if (level == CONSTANTS.SkillUpgradeLevel[2]) AddThirdUpgrade();
-    }
-
-    // 1,2,3번 강화효과
-    public virtual void AddFirstUpgrade() { }
-    public virtual void AddSecondUpgrade() { }
-    public virtual void AddThirdUpgrade() { }
 }
 
 public class SkillHandler: MonoBehaviour { }
 
 /// <summary>
-/// 액티브 스킬 ->타겟팅 스킬 구분
+/// 액티브 스킬
 /// </summary>
 [Serializable]
-public class ActiveSkill : Skill
+public abstract class ActiveSkill : Skill
 {
+    // 스킬 사운드
+    public AudioClip skillSound; 
 
-    public AudioClip skillSound;
+    // 액티브 스킬 데이터 -> 시트에서 받아오는 데이터
+    public ActiveSkillData skillData; 
 
-    public ActiveSkillData skillData;
+    // 스킬 콜라이더 리스트 -> 레이어변경이 필요한 콜라이더들
+    public List<Collider> skillCollList = new List<Collider>(); 
 
-    public List<Collider> skillCollList = new List<Collider>(); // 스킬 콜라이더 리스트 -> 레이어변경이 필요한 콜라이더들
-
-    public bool isActive = false;
+    public bool isActive = false; // 스킬 활성 여부 
 
     public float damage; // 데미지
+
+    // 액티브 스킬 사용 기능 -> 실제 스킬 사용효과
+    public abstract void UseActiveSkill();
+
+    //스킬 레벨에 따른 강화효과 추가
+    public abstract void AddFirstUpgrade(); // 10레벨 강화효과
+    public abstract void AddSecondUpgrade(); // 20레벨 강화효과
+    public abstract void AddThirdUpgrade(); // 30레벨 강화효과
+
+    // 스킬 초기 설정
+    public override void InitSkill(SkillHandler _skillUser, int skilLevel)
+    {
+        base.InitSkill(_skillUser, skilLevel);
+        // 스킬 레벨에 따른 업그레이드 여부 체크
+        if (level >= CONSTANTS.SkillUpgradeLevel[0]) AddFirstUpgrade();
+        if (level >= CONSTANTS.SkillUpgradeLevel[1]) AddSecondUpgrade();
+        if (level >= CONSTANTS.SkillUpgradeLevel[2]) AddThirdUpgrade();
+    }
+
+    // 스킬 레벨업 시 업그레이드 체크
+    public override void CheckSkillUpgrade()
+    {
+        if (level == CONSTANTS.SkillUpgradeLevel[0]) AddFirstUpgrade();
+        if (level == CONSTANTS.SkillUpgradeLevel[1]) AddSecondUpgrade();
+        if (level == CONSTANTS.SkillUpgradeLevel[2]) AddThirdUpgrade();
+    }
 
     // 액티브 스킬 생성
     public virtual void InitActiveSkill(SkillHandler _skillUser, ActiveSkillData _skillData, int skillLevel)
@@ -174,7 +184,8 @@ public class ActiveSkill : Skill
             // 스킬 효과음 재생
            // SoundManager.instance.PlaySfx(skillSound, 1.0f);
         }
-     
+
+        UseActiveSkill();
     }
 
     public override void LevelUp()
@@ -262,20 +273,12 @@ public class ActiveSkill : Skill
 
 }
 
-// 액티브 - 타게팅 스킬
-[Serializable]
-public class TargetingSkill : ActiveSkill
+// 타겟팅 스킬에는 해당 인터페이스 추가 -> 타겟들의 트랜스폼 리스트
+public interface ITargetingSkill
 {
-    // 타겟리스트
-    public List<Transform> targetList = new List<Transform>();
-    // 타겟추가
-    public void AddTarget(params Transform[] targets)
-    {
-        targetList.Clear();
-        targetList.AddRange(targets);
-    }
-}
+    public List<Transform> targetList { get; set; }
 
+}
 
 
 

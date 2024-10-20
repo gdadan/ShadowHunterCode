@@ -33,10 +33,8 @@ public class TornadoSkill : ActiveSkill
         }
     }
 
-    public override void UseSkill()
-    {
-        base.UseSkill();
-
+    public override void UseActiveSkill()
+    {       
         targets.Clear();
         
         StartAoESkill();
@@ -51,8 +49,6 @@ public class TornadoSkill : ActiveSkill
 
     public override void AddFirstUpgrade()
     {
-        base.AddFirstUpgrade();
-
         //범위 증가
         skillData.atkRange *= 1 + skillData.firstUpgradeValue[0];
         Utils.SetSkillRange(areaCol.gameObject, skillData.atkRange);
@@ -60,16 +56,12 @@ public class TornadoSkill : ActiveSkill
 
     public override void AddSecondUpgrade()
     {
-        base.AddSecondUpgrade();
-
         //출혈 효과 생성
         hasBleed = true;
     }
 
     public override void AddThirdUpgrade()
     {
-        base.AddThirdUpgrade();
-
         //데미지 증가
         skillData.skillDamage += skillData.thirdUpgradeValue[0];
     }

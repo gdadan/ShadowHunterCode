@@ -12,10 +12,8 @@ public class LightAreaSkill : ActiveSkill
         Utils.SetSkillRange(areaCol.gameObject, skillData.atkRange);
     }
 
-    public override void UseSkill()
-    {
-        base.UseSkill();
-
+    public override void UseActiveSkill()
+    {      
         StartAoESkill();
     }
 
@@ -28,7 +26,7 @@ public class LightAreaSkill : ActiveSkill
 
     public override void AddFirstUpgrade()
     {
-        base.AddFirstUpgrade();
+       // base.AddFirstUpgrade();
 
         //데미지 증가
         skillData.skillDamage += skillData.firstUpgradeValue[0];
@@ -36,7 +34,7 @@ public class LightAreaSkill : ActiveSkill
 
     public override void AddSecondUpgrade()
     {
-        base.AddSecondUpgrade();
+      //  base.AddSecondUpgrade();
 
         //지속 시간 증가
         skillData.duration *= 1 + skillData.secondUpgradeValue[0];
@@ -44,7 +42,7 @@ public class LightAreaSkill : ActiveSkill
 
     public override void AddThirdUpgrade()
     {
-        base.AddThirdUpgrade();
+       // base.AddThirdUpgrade();
 
         //범위 증가
         skillData.atkRange *= 1 + skillData.thirdUpgradeValue[0];

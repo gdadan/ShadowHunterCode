@@ -1,22 +1,19 @@
-using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LazerSkill : ActiveSkill, ITargetingSkill
+public class LeafReleaseSkill : ActiveSkill, ITargetingSkill
 {
-    [SerializeField] Collider lazerCol;
+    [SerializeField] Collider areaCol;
 
-    float delayTime = 1f; // 스킬 실행 딜레이 시간 (발사 전 이펙트 시간)
-
-    List<AttackHandler> targets = new List<AttackHandler>(); //상태 효과 적용을 위한 리스트
+    List<AttackHandler> targets = new List<AttackHandler>(); //상태 효과를 위한 리스트
 
     public List<Transform> targetList { get; set; }
 
     private void Start()
     {
         //크기 설정
-        Utils.SetSkillRange(lazerCol.gameObject, skillData.atkRange);
+        Utils.SetSkillRange(areaCol.gameObject, skillData.atkRange);
     }
 
     public override void OnTriggerEnter(Collider other)
@@ -25,7 +22,7 @@ public class LazerSkill : ActiveSkill, ITargetingSkill
 
         AttackHandler target = other.GetComponent<AttackHandler>();
 
-        //넉백 효과 적용
+        //넉백 효과 실행
         if (target != null && !targets.Contains(target))
         {
             targets.Add(target);
@@ -34,38 +31,40 @@ public class LazerSkill : ActiveSkill, ITargetingSkill
     }
 
     public override void UseActiveSkill()
-    {      
-        targets.Clear();
-        StartLazer();
-    }
-    
-    //스킬 실행
-    void StartLazer()
     {
-        //가장 가까운 적의 방향으로 레이저 발사
-        //delayTime + duration = useTime
-        lazerCol.transform.LookAt(targetList[0].position);
+        targets.Clear();
 
-        StartCoroutine(CastDoTSkillCoro(lazerCol, delayTime));
+        StartCoroutine(StartRangeSkillCoro());
+    }
+
+    //스킬 실행
+    IEnumerator StartRangeSkillCoro()
+    {
+        //플레이어에 가장 가까운 적을 향해 범위공격
+        areaCol.transform.LookAt(targetList[0].position);
+
+        areaCol.gameObject.SetActive(true);
+
+        yield return YieldCache.WaitForSeconds(skillData.useTime);
+
+        areaCol.gameObject.SetActive(false);
+
+        StopSkill();
     }
 
     public override void AddFirstUpgrade()
     {
-        skillData.skillDamage += skillData.firstUpgradeValue[0];
+        skillData.coolTime *= 1 - skillData.firstUpgradeValue[0];
     }
 
     public override void AddSecondUpgrade()
     {
-       
-        //크기 증가
         skillData.atkRange *= 1 + skillData.secondUpgradeValue[0];
-        Utils.SetSkillRange(lazerCol.gameObject, skillData.atkRange);
+        Utils.SetSkillRange(areaCol.gameObject, skillData.atkRange);
     }
 
     public override void AddThirdUpgrade()
     {
-      
-        //데미지 증가
         skillData.skillDamage += skillData.thirdUpgradeValue[0];
     }
 }

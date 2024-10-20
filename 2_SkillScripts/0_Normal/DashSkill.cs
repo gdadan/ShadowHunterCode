@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DashSkill : TargetingSkill
+public class DashSkill : ActiveSkill, ITargetingSkill
 {
     [SerializeField] Collider dashCol;
     [SerializeField] GameObject shieldEffect; //쉴드 이펙트
@@ -15,16 +15,16 @@ public class DashSkill : TargetingSkill
 
     ShieldData shieldData;
 
+    public List<Transform> targetList { get; set; }
+
     private void Start()
     {
         shieldAmount = skillData.firstUpgradeValue[0];
         shieldDuration = skillData.firstUpgradeValue[1];
     }
 
-    public override void UseSkill()
+    public override void UseActiveSkill()
     {
-        base.UseSkill();
-
         if (hasShield)
         {
             shieldData = new ShieldData(skillUser.SkillUserHp * shieldAmount, skillUser.SkillUserHp * shieldAmount, BrokenShield);
@@ -91,8 +91,6 @@ public class DashSkill : TargetingSkill
 
     public override void AddFirstUpgrade()
     {
-        base.AddFirstUpgrade();
-
         //쉴드 활성화 가능
         shieldEffect.transform.parent = skillUser.transform;
         shieldEffect.transform.localPosition = Vector3.zero;
@@ -101,16 +99,12 @@ public class DashSkill : TargetingSkill
 
     public override void AddSecondUpgrade()
     {
-        base.AddSecondUpgrade();
-
-        //쉴드 지속시간 증가
+       //쉴드 지속시간 증가
         shieldDuration *= 1 + skillData.secondUpgradeValue[0];
     }
 
     public override void AddThirdUpgrade()
     {
-        base.AddThirdUpgrade();
-
         //쉴드량 증가
         shieldAmount += skillData.thirdUpgradeValue[0];
     }

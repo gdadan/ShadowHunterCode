@@ -2,11 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ThunderSkill : TargetingSkill
+public class ThunderSkill : ActiveSkill, ITargetingSkill
 {
     [SerializeField] Collider areaCol;
 
     float duration = 1f; //오브젝트 꺼질 때까지 지연시간
+
+    public List<Transform> targetList { get; set; }
 
     private void Start()
     {
@@ -14,10 +16,8 @@ public class ThunderSkill : TargetingSkill
         Utils.SetSkillRange(areaCol.gameObject, skillData.atkRange);
     }
 
-    public override void UseSkill()
-    {
-        base.UseSkill();
-
+    public override void UseActiveSkill()
+    {       
         StartSkill();
     }
 
@@ -31,26 +31,21 @@ public class ThunderSkill : TargetingSkill
     }
 
     public override void AddFirstUpgrade()
-    {
-        base.AddFirstUpgrade();
-
+    {       
         //데미지 증가
         skillData.skillDamage += skillData.firstUpgradeValue[0];
     }
 
     public override void AddSecondUpgrade()
     {
-        base.AddSecondUpgrade();
-
+       
         //범위 증가
         skillData.atkRange *= 1 + skillData.secondUpgradeValue[0];
         Utils.SetSkillRange(areaCol.gameObject, skillData.atkRange);
     }
 
     public override void AddThirdUpgrade()
-    {
-        base.AddThirdUpgrade();
-
+    {     
         //데미지 증가
         skillData.skillDamage += skillData.thirdUpgradeValue[0];
     }

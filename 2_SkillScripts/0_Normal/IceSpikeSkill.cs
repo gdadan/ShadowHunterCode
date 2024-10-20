@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class IceSpikeSkill : TargetingSkill
+public class IceSpikeSkill : ActiveSkill , ITargetingSkill
 {
     [SerializeField] GameObject allObj; //전체 오브젝트
     [SerializeField] Collider originalCol; //생성할 원본 콜라이더
@@ -12,6 +12,8 @@ public class IceSpikeSkill : TargetingSkill
     int iceCount = 1; //얼음가시 개수
 
     List<AttackHandler> targets = new List<AttackHandler>(); //상태효과를 위한 리스트
+
+    public List<Transform> targetList { get ; set ; }
 
     private void Start()
     {
@@ -33,10 +35,8 @@ public class IceSpikeSkill : TargetingSkill
         }
     }
 
-    public override void UseSkill()
-    {
-        base.UseSkill();
-
+    public override void UseActiveSkill()
+    {      
         targets.Clear();
 
         StartCoroutine(AoESkillCoro());
@@ -50,7 +50,7 @@ public class IceSpikeSkill : TargetingSkill
             // 타겟 체크
             if (targetList.Count == 0)
             {
-                skillUser.SetTarget(this);
+                skillUser.SetTarget(this , skillData);
             }
 
             //타겟이 없다면 종료
@@ -91,26 +91,20 @@ public class IceSpikeSkill : TargetingSkill
     }
 
     public override void AddFirstUpgrade()
-    {
-        base.AddFirstUpgrade();
-
+    {  
         //개수 증가
         iceCount += (int)skillData.firstUpgradeValue[0];
         InitIceSpike((int)skillData.firstUpgradeValue[0]);
     }
 
     public override void AddSecondUpgrade()
-    {
-        base.AddSecondUpgrade();
-
+    {     
         //빙결 시간 증가
         skillData.statusValue[0] += skillData.secondUpgradeValue[0];
     }
 
     public override void AddThirdUpgrade()
-    {
-        base.AddThirdUpgrade();
-
+    {   
         //개수 증가
         iceCount += (int)skillData.thirdUpgradeValue[0];
         InitIceSpike((int)skillData.thirdUpgradeValue[0]);

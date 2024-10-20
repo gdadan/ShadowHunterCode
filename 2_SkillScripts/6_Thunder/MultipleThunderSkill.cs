@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MultipleThunderSkill : TargetingSkill
+public class MultipleThunderSkill : ActiveSkill, ITargetingSkill
 {
     [SerializeField] GameObject allObj; // 전체 오브젝트
     [SerializeField] GameObject thunderEffect; // 번개 원본 이펙트
@@ -11,15 +11,15 @@ public class MultipleThunderSkill : TargetingSkill
     int thunderCount = 7; //번개 개수
     float duration = 1f; //이펙트 꺼지는 시간
 
+    public List<Transform> targetList { get; set; }
+
     private void Start()
     {
         InitThunder(thunderCount);
     }
 
-    public override void UseSkill()
+    public override void UseActiveSkill()
     {
-        base.UseSkill();
-
         StartCoroutine(StartThunderSkill());
     }
 
@@ -31,7 +31,7 @@ public class MultipleThunderSkill : TargetingSkill
             // 타겟 체크
             if (targetList.Count == 0)
             {
-                skillUser.SetTarget(this);
+                skillUser.SetTarget(this , skillData);
             }
 
             //타겟이 없다면 종료
@@ -79,8 +79,7 @@ public class MultipleThunderSkill : TargetingSkill
     }
     public override void AddFirstUpgrade()
     {
-        base.AddFirstUpgrade();
-
+      
         //횟수 증가
         thunderCount += (int)skillData.firstUpgradeValue[0];
         InitThunder((int)skillData.firstUpgradeValue[0]);
@@ -88,16 +87,14 @@ public class MultipleThunderSkill : TargetingSkill
 
     public override void AddSecondUpgrade()
     {
-        base.AddSecondUpgrade();
-
+      
         //데미지 증가
         skillData.skillDamage += skillData.secondUpgradeValue[0];
     }
 
     public override void AddThirdUpgrade()
     {
-        base.AddThirdUpgrade();
-
+       
         //횟수 증가
         thunderCount += (int)skillData.thirdUpgradeValue[0];
         InitThunder((int)skillData.thirdUpgradeValue[0]);

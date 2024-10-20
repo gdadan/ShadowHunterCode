@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class JumpAttackSkill : TargetingSkill
+public class JumpAttackSkill : ActiveSkill, ITargetingSkill
 {
     [SerializeField] Collider arrivalCol; //착지 후 바닥 이펙트
     [SerializeField] GameObject jumpEffect; //점프할 때의 이펙트
@@ -11,6 +11,8 @@ public class JumpAttackSkill : TargetingSkill
     [SerializeField] float jumpPower; //점프 높이
 
     List<AttackHandler> targets = new List<AttackHandler>(); //상태효과를 위한 리스트
+
+    public List<Transform> targetList { get ; set ; }
 
     private void Start()
     {
@@ -32,12 +34,9 @@ public class JumpAttackSkill : TargetingSkill
         }
     }
 
-    public override void UseSkill()
-    {
-        base.UseSkill();
-
+    public override void UseActiveSkill()
+    {     
         targets.Clear();
-
         JumpAtaack();
     }
 
@@ -72,16 +71,14 @@ public class JumpAttackSkill : TargetingSkill
 
     public override void AddFirstUpgrade()
     {
-        base.AddFirstUpgrade();
-
+       
         //데미지 증가
         skillData.skillDamage += skillData.firstUpgradeValue[0];
     }
 
     public override void AddSecondUpgrade()
     {
-        base.AddSecondUpgrade();
-
+     
         //크기 증가
         skillData.atkRange *= 1 + skillData.secondUpgradeValue[0];
         Utils.SetSkillRange(arrivalCol.gameObject, skillData.atkRange);
@@ -89,8 +86,7 @@ public class JumpAttackSkill : TargetingSkill
 
     public override void AddThirdUpgrade()
     {
-        base.AddThirdUpgrade();
-
+  
         //데미지 증가
         skillData.skillDamage += skillData.thirdUpgradeValue[0];
     }

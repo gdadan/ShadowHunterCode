@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ArrowRainSkill : TargetingSkill
+public class ArrowRainSkill : ActiveSkill, ITargetingSkill
 {
     [SerializeField] GameObject allObj; //전체 오브젝트
     [SerializeField] Collider arrowCol; //생성할 콜라이더
@@ -12,6 +12,8 @@ public class ArrowRainSkill : TargetingSkill
     float duration = 1.2f; //오브젝트 꺼질 때까지 지연시간
     int arrowCount = 3; //화살 개수
 
+    public List<Transform> targetList { get ; set; }
+
     private void Start()
     {
         //크기 설정, 화살 수 설정
@@ -19,10 +21,8 @@ public class ArrowRainSkill : TargetingSkill
         Utils.SetSkillRange(allObj, skillData.atkRange);
     }
 
-    public override void UseSkill()
+    public override void UseActiveSkill()
     {
-        base.UseSkill();
-
         StartCoroutine(DropArrowCoro());
     }
 
@@ -34,7 +34,7 @@ public class ArrowRainSkill : TargetingSkill
             // 타겟 체크
             if (targetList.Count == 0)
             {
-                skillUser.SetTarget(this);
+                skillUser.SetTarget(this , skillData);
             }
 
             //타겟이 없다면 종료
@@ -79,7 +79,6 @@ public class ArrowRainSkill : TargetingSkill
 
     public override void AddFirstUpgrade()
     {
-        base.AddFirstUpgrade();
 
         //화살 수 증가
         arrowCount += (int)skillData.firstUpgradeValue[0];
@@ -88,8 +87,6 @@ public class ArrowRainSkill : TargetingSkill
 
     public override void AddSecondUpgrade()
     {
-        base.AddSecondUpgrade();
-
         //화살 범위 증가
         skillData.atkRange *= 1 + skillData.secondUpgradeValue[0];
         Utils.SetSkillRange(allObj, skillData.atkRange);
@@ -97,7 +94,6 @@ public class ArrowRainSkill : TargetingSkill
 
     public override void AddThirdUpgrade()
     {
-        base.AddThirdUpgrade();
 
         //화살 수 증가
         arrowCount += (int)skillData.thirdUpgradeValue[0];

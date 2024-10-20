@@ -3,10 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ThunderDashSkill : TargetingSkill
+public class ThunderDashSkill : ActiveSkill, ITargetingSkill
 {
     [SerializeField] Collider dashCol; //돌진할 때 콜라이더
     [SerializeField] Collider slashCol; //슬래쉬 콜라이더
+
+    public List<Transform> targetList { get; set; }
 
     private void Start()
     {
@@ -14,10 +16,8 @@ public class ThunderDashSkill : TargetingSkill
         Utils.SetSkillRange(slashCol.gameObject, skillData.skillScale);
     }
 
-    public override void UseSkill()
+    public override void UseActiveSkill()
     {
-        base.UseSkill();
-
         Dash();
     }
 
@@ -103,25 +103,20 @@ public class ThunderDashSkill : TargetingSkill
 
     public override void AddFirstUpgrade()
     {
-        base.AddFirstUpgrade();
-
+      
         //재사용 대기시간 감소
         skillData.coolTime *= 1 - skillData.firstUpgradeValue[0];
     }
 
     public override void AddSecondUpgrade()
-    {
-        base.AddSecondUpgrade();
-
+    {     
         //범위 증가
         skillData.atkRange *= 1 + skillData.secondUpgradeValue[0];
         Utils.SetSkillRange(slashCol.gameObject, skillData.skillScale);
     }
 
     public override void AddThirdUpgrade()
-    {
-        base.AddThirdUpgrade();
-
+    {     
         //데미지 증가
         skillData.skillDamage += skillData.thirdUpgradeValue[0];
     }

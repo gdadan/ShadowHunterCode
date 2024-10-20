@@ -12,10 +12,8 @@ public class LightningField : ActiveSkill
         Utils.SetSkillRange(areaCol.gameObject, skillData.atkRange);
     }
 
-    public override void UseSkill()
-    {
-        base.UseSkill();
-
+    public override void UseActiveSkill()
+    {      
         StartAoESkill();
     }
 
@@ -27,25 +25,19 @@ public class LightningField : ActiveSkill
     }
 
     public override void AddFirstUpgrade()
-    {
-        base.AddFirstUpgrade();
-
+    {     
         //지속시간 증가
         skillData.duration *= 1 + skillData.firstUpgradeValue[0];
     }
 
     public override void AddSecondUpgrade()
     {
-        base.AddSecondUpgrade();
-
         //피해 주기 감소
         skillData.intervalTime *= 1 - skillData.secondUpgradeValue[0];
     }
 
     public override void AddThirdUpgrade()
     {
-        base.AddThirdUpgrade();
-
         //범위 증가
         skillData.atkRange *= 1 + skillData.thirdUpgradeValue[0];
         Utils.SetSkillRange(areaCol.gameObject, skillData.atkRange);

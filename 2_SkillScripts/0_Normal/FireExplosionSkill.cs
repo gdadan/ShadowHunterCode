@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FireExplosionSkill : TargetingSkill
+public class FireExplosionSkill : ActiveSkill, ITargetingSkill
 {
     [SerializeField] Collider areaCol; //폭발 콜라이더
     [SerializeField] Collider fireGround; //화염지대 콜라이더
@@ -12,6 +12,8 @@ public class FireExplosionSkill : TargetingSkill
     bool hasFireGround = false; //화염지대 활성화 여부 => 업그레이드 시 활성
 
     List<AttackHandler> targets = new List<AttackHandler>(); //상태효과 적용을 위한 리스트
+
+    public List<Transform> targetList { get; set; }
 
     private void Start()
     {
@@ -34,10 +36,9 @@ public class FireExplosionSkill : TargetingSkill
         }
     }
 
-    public override void UseSkill()
+    public override void UseActiveSkill()
     {
-        base.UseSkill();
-
+       
         targets.Clear();
 
         StartAoESkill();
@@ -76,8 +77,7 @@ public class FireExplosionSkill : TargetingSkill
 
     public override void AddFirstUpgrade()
     {
-        base.AddFirstUpgrade();
-
+        
         //폭발 범위 증가
         skillData.atkRange *= 1 + skillData.firstUpgradeValue[0];
         Utils.SetSkillRange(areaCol.gameObject, skillData.atkRange);
@@ -85,8 +85,7 @@ public class FireExplosionSkill : TargetingSkill
 
     public override void AddSecondUpgrade()
     {
-        base.AddSecondUpgrade();
-
+       
         //화염지대 생성
         fireGround.transform.parent = null;
         Utils.SetSkillRange(fireGround.gameObject, skillData.atkRange);
@@ -96,8 +95,7 @@ public class FireExplosionSkill : TargetingSkill
 
     public override void AddThirdUpgrade()
     {
-        base.AddThirdUpgrade();
-
+       
         //화상 데미지 증가
         skillData.statusValue[2] += skillData.thirdUpgradeValue[0];
     }
