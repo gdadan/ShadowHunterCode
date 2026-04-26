@@ -33,7 +33,6 @@
 |------|------|------------|
 | 스킬 시스템 | 6개 캐릭터 / **40개 스킬** | 추상 클래스, 인터페이스, OCP |
 | 상태이상 시스템 | **9종 효과** (디버프 6 / 버프 3) | 전략 패턴, 코루틴, 중첩 처리 |
-| 성능 최적화 | 전역 적용 | 오브젝트 풀링, Yield 캐싱, GC 절감 |
 | 펫 시스템 | UI / AI | 강화 기능, 추적 AI |
 
 <br/>
@@ -123,7 +122,6 @@ public void AddBuff(StatusEffect statusEffect)
 - **단일 진입점** : `AddBuff()` 하나로 9종 효과 모두 처리. 매니저는 구체 타입을 몰라도 됨
 - **중첩 정책 일원화** : `isDuplicated` 플래그로 효과별 정책을 데이터처럼 표현
 - **자원 누수 방지** : 코루틴 종료 시 `Remove()` → 파티클 풀 반환 → 리스트 제거가 자동 흐름
-- **DOTween 연동** : 공중부양 효과는 `DOTween.Sequence`로 부드러운 위/아래 이동 표현
 
 🔗 [상태효과 클래스 (StatusEffect.cs)](./3_StatusEffect/StatusEffect.cs)
 🔗 [매니저 (StatusEffectManager.cs)](./3_StatusEffect/StatusEffectManager.cs)
@@ -132,123 +130,10 @@ public void AddBuff(StatusEffect statusEffect)
 
 ---
 
-## 🚀 3. 성능 최적화 — 모바일 방치형의 GC 부담 줄이기
-
-### 무엇을 (What)
-방치형 RPG는 **수십 개의 스킬·이펙트가 동시에 발동**되는 장르라, 매 프레임 발생하는 가비지 컬렉션이 모바일에서 프레임 드랍을 유발했습니다. 이를 두 가지 방향으로 해결했습니다.
-
-### 3-1. Yield 캐싱 — `WaitForSeconds` 인스턴스 재사용
-
-#### 왜 (Why)
-`yield return new WaitForSeconds(0.1f)` 한 줄이 매번 **새 객체를 힙에 할당** → 코루틴이 많은 게임에서 GC 호출이 폭증.
-
-#### 어떻게 (How)
-시간 값을 키로 하는 Dictionary에 캐싱해 동일 시간 값은 인스턴스 재사용.
-
-```csharp
-private static readonly Dictionary<float, WaitForSeconds> _timeInterval
-    = new Dictionary<float, WaitForSeconds>(new FloatComparer());
-
-public static WaitForSeconds WaitForSeconds(float seconds)
-{
-    if (!_timeInterval.TryGetValue(seconds, out var wfs))
-        _timeInterval.Add(seconds, wfs = new WaitForSeconds(seconds));
-    return wfs;
-}
-```
-
-→ `Utils.AreaDoTAttack` 같은 반복 코루틴에서 **할당 횟수 → 1회**로 감소.
-
-🔗 [YieldCache.cs](./1_Class/YieldCache.cs)
-
-### 3-2. 오브젝트 풀링 — 파티클 재사용
-
-#### 왜 (Why)
-스킬·상태이상 파티클을 매번 `Instantiate` / `Destroy` 하면 GC + 인스턴스화 비용이 누적.
-
-#### 어떻게 (How)
-타입(int)별 큐(Queue)로 풀을 관리. 사용 후 `ReturnParticle()`로 비활성화하여 풀에 복귀.
-
-```csharp
-public ParticleSystem GetParticle(int type)
-{
-    var p = ObjectPoolManager.GetPooledObject(particlePool[type]);
-    if (p == null) p = Instantiate(...).GetComponent<ParticleSystem>();
-    p.gameObject.SetActive(true);
-    return p;
-}
-```
-
-🔗 [EffectManager.cs](./3_StatusEffect/EffectManager.cs)
-
-<br/>
-
----
-
-## 📊 4. 데이터 드리븐 설계 — 기획자 협업과 빠른 밸런싱
-
-### 왜 (Why)
-밸런싱(쿨타임·데미지·범위·강화 수치)이 매일 바뀌는 모바일 게임 특성상, **수치 변경 시마다 재컴파일은 비효율**.
-
-### 어떻게 (How)
-스킬 데이터를 외부 시트에서 받아와 `ActiveSkillData` POCO 클래스에 매핑. 코드는 **데이터를 읽기만** 하도록 분리.
-
-```csharp
-[Serializable]
-public class ActiveSkillData
-{
-    public int id;                    // 1~ 일반, 101~ 변신
-    public float coolTime;
-    public float skillDamage;
-    public float atkRange;
-    public float duration;
-    public int statusType;
-    public float[] firstUpgradeValue;   // 10레벨 강화 수치
-    public float[] secondUpgradeValue;  // 20레벨 강화 수치
-    public float[] thirdUpgradeValue;   // 30레벨 강화 수치
-    public string explain;
-    // ... 30+ 필드
-}
-```
-
-→ 기획자가 시트만 수정하면 게임 즉시 반영. 코드 수정 없이 신규 스킬 등록 가능.
-
-<br/>
-
----
-
-## 🐾 5. 펫 시스템
-
-- **펫 강화 UI** : 단계별 강화 확률·재료 시각화
-- **추적 AI** : 플레이어 위치 기준 일정 거리 유지하며 자연스럽게 따라오는 이동 로직
-
-<br/>
-
----
 
 ## 💡 회고 — 이 프로젝트에서 배운 것
 
-- **추상화의 가치** : 처음 5개 스킬을 만들 때는 if/switch로도 충분했지만, 30개를 넘어가니 추상 클래스 없이는 유지보수 불가능했습니다. **확장될 영역에 미리 추상화를 두는 감각**을 익혔습니다.
-- **모바일 최적화 사고** : Profiler를 보고 "왜 GC가 이렇게 자주 도는가?"를 추적하면서, 평소 무심하던 `new WaitForSeconds`가 누적 비용이라는 걸 체감했습니다.
-- **기획자와의 협업 인터페이스** : 코드와 데이터의 경계를 명확히 두면, 기획자가 직접 밸런싱 → QA 사이클이 빨라진다는 걸 배웠습니다.
+- **추상화의 가치** : 처음 스킬을 만들 때는 if/switch로도 충분했지만, 수가 점점 많아지니 추상 클래스 없이는 유지보수가 어려웠습니다. **확장될 영역에 미리 추상화를 두고 생각하는 감각**을 익혔습니다.
 
 <br/>
 
-## 📁 코드 구조
-
-```
-ShadowHunterCode/
-├── 1_Class/                  # 핵심 추상 클래스 & 유틸
-│   ├── SkillClass.cs         # Skill, ActiveSkill, IDamageable, ITargetingSkill
-│   ├── Utils.cs              # 타겟 탐색, DoT 공격 유틸
-│   └── YieldCache.cs         # WaitForSeconds 캐싱
-├── 2_SkillScripts/           # 40개 스킬 구현체
-│   ├── 0_Normal/             # 일반 스킬
-│   ├── 1_Vampire/            # 뱀파이어 캐릭터 스킬
-│   ├── 2_Fairy/              # 요정 캐릭터 스킬
-│   └── ...                   # 늑대인간 / 사세트 / 이프리트 / 천둥
-└── 3_StatusEffect/           # 9종 상태이상 시스템
-    ├── StatusEffect.cs       # 추상 + 9개 구체 클래스
-    ├── StatusEffectManager.cs # 적용/중첩/제거 관리
-    └── EffectManager.cs      # 파티클 오브젝트 풀
-```
