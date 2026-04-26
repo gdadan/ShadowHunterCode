@@ -63,9 +63,9 @@ public abstract class Skill : MonoBehaviour
 public abstract class ActiveSkill : Skill
 {
     public abstract void UseActiveSkill();
-    public abstract void AddFirstUpgrade();   // 10레벨 강화 (강제)
-    public abstract void AddSecondUpgrade();  // 20레벨 강화 (강제)
-    public abstract void AddThirdUpgrade();   // 30레벨 강화 (강제)
+    public abstract void AddFirstUpgrade();   // 10레벨 강화
+    public abstract void AddSecondUpgrade();  // 20레벨 강화
+    public abstract void AddThirdUpgrade();   // 30레벨 강화
 }
 
 // 3. 타겟팅 스킬은 인터페이스로 분리
@@ -74,7 +74,7 @@ public interface IDamageable { void OnDamaged(float damage, bool isCri); }
 ```
 
 - **새 스킬 추가가 쉬워짐** : `ActiveSkill`을 상속한 새 클래스만 만들면 끝. 매니저나 다른 곳을 건드릴 필요가 없음.
-- **공통 로직은 부모에서 일괄 처리** : 데미지 계산, 레벨업 시 능력치 증가, 콜라이더 레이어 변경(`SetSkillLayer`)을 부모가 담당.
+- **공통 로직은 부모에서 일괄 처리** : 데미지 계산, 레벨업 시 능력치 증가를 부모가 담당.
 - **확장 가능 인터페이스** : 타겟팅이 필요한 스킬만 `ITargetingSkill` 구현 → 단일 책임 분리
 
 🔗 [스킬 추상 클래스 (SkillClass.cs)](./1_Class/SkillClass.cs)
